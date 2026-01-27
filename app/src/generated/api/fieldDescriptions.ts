@@ -24,7 +24,7 @@ export const fieldDescriptions = {
     "shutter": "Shutter speed in milliseconds."
   },
   "CloudSettings": {
-    "host": "Base URL of the cloud service.",
+    "host": "Base URL of the cloud service. HTTPS is required.",
     "password": "HTTP basic auth password for the cloud API.",
     "split_size": "Maximum upload part size in bytes. The cloud currently accepts up to 200 MB per chunk.",
     "token": "API token identifying the device or user.",

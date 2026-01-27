@@ -258,7 +258,7 @@ export type CloudSettings = {
     /**
      * Host
      *
-     * Base URL of the cloud service.
+     * Base URL of the cloud service. HTTPS is required.
      */
     host: string;
     /**
