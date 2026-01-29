@@ -181,6 +181,17 @@ interface DeviceConfigFile {
   shield: string | null
 }
 
+interface ConfigListResponse {
+  configs?: DeviceConfigFile[]
+}
+
+function isConfigListResponse(data: unknown): data is ConfigListResponse {
+  if (typeof data !== 'object' || data === null) return false
+  const obj = data as Record<string, unknown>
+  if (obj.configs !== undefined && !Array.isArray(obj.configs)) return false
+  return true
+}
+
 const $q = useQuasar()
 const configOptions = ref<DeviceConfigFile[]>([])
 const loadingConfigs = ref(false)
@@ -217,8 +228,12 @@ async function loadConfigs() {
   loadingConfigs.value = true
   try {
     const data = await listConfigFiles<true>({ client: apiClient, throwOnError: true })
-    const configs = (data as any)?.configs ?? []
-    configOptions.value = configs as DeviceConfigFile[]
+    if (!isConfigListResponse(data)) {
+      console.warn('Unexpected response format from listConfigFiles', data)
+      configOptions.value = []
+      return
+    }
+    configOptions.value = data.configs ?? []
   } catch (error) {
     console.error('Failed to load device configurations', error)
     $q.notify({ type: 'negative', message: 'Failed to load device configurations' })

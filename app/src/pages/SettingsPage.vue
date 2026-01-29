@@ -392,6 +392,18 @@ type DeviceConfigListItem = {
   shield: string | null
 }
 
+type ConfigListResponse = {
+  status?: string
+  configs?: DeviceConfigListItem[]
+}
+
+function isConfigListResponse(data: unknown): data is ConfigListResponse {
+  if (typeof data !== 'object' || data === null) return false
+  const obj = data as Record<string, unknown>
+  if (obj.configs !== undefined && !Array.isArray(obj.configs)) return false
+  return true
+}
+
 const DEFAULT_CONFIG_FILENAME = 'device_config.json'
 
 const configOptions = ref<DeviceConfigOption[]>([])
@@ -495,10 +507,11 @@ function mapLightConfig(config: LightConfig | null | undefined): LightForm {
 async function loadDeviceConfigs() {
   configOptionsLoading.value = true
   try {
-    const response = (await listConfigFiles({ client: apiClient })) as unknown as {
-      status?: string
-      configs?: DeviceConfigListItem[]
+    const rawResponse = await listConfigFiles({ client: apiClient })
+    if (!isConfigListResponse(rawResponse)) {
+      console.warn('Unexpected response format from listConfigFiles', rawResponse)
     }
+    const response = rawResponse as ConfigListResponse
 
     const isDefaultConfig = (item: DeviceConfigListItem) => {
       const filenameMatches = item.filename === DEFAULT_CONFIG_FILENAME

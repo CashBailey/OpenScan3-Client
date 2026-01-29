@@ -57,6 +57,31 @@ import BaseSection from 'components/base/BaseSection.vue'
 import { useTaskStore } from 'src/stores/tasks'
 import BaseButtonPrimary from "components/base/BaseButtonPrimary.vue";
 
+interface ScanSettings {
+  path_method?: string
+  points?: number
+  image_format?: string
+  min_theta?: number
+  max_theta?: number
+  optimize_path?: boolean
+  optimization_algorithm?: string
+  focus_stacks?: number
+  focus_range?: [number | string, number | string]
+}
+
+interface ScanArgs {
+  project_name?: string
+  index?: number
+  settings?: ScanSettings
+}
+
+function isScanArgsArray(data: unknown): data is [ScanArgs, ...unknown[]] {
+  if (!Array.isArray(data) || data.length === 0) return false
+  const first = data[0]
+  if (typeof first !== 'object' || first === null) return false
+  return true
+}
+
 const props = defineProps<{
   taskId: string
   initialTask?: Task | null
@@ -72,19 +97,24 @@ void taskStore.ensureConnected()
 
 const task = computed(() => (taskStore.taskById(props.taskId) ?? props.initialTask)!)
 
-const scanArgs = computed(() => {
-  return (task.value.run_args as unknown as any[])[0] as any
+const scanArgs = computed<ScanArgs>(() => {
+  const runArgs = task.value.run_args
+  if (isScanArgsArray(runArgs)) {
+    return runArgs[0]
+  }
+  console.warn('Unexpected run_args format for scan task', runArgs)
+  return {}
 })
 
-const scanProjectName = computed(() => scanArgs.value.project_name as string)
-const scanIndex = computed(() => scanArgs.value.index as number)
+const scanProjectName = computed(() => scanArgs.value.project_name ?? 'Unknown')
+const scanIndex = computed(() => scanArgs.value.index ?? 0)
 
 const scanTitle = computed(() => {
   return `Scan #${scanIndex.value} for ${scanProjectName.value}`
 })
 
 const scanSettingsDescription = computed(() => {
-  const settings = scanArgs.value.settings as any
+  const settings = scanArgs.value.settings ?? {}
   const focusRange = settings.focus_range ?? ['n/a', 'n/a']
   const focusRangeLabel = `${focusRange[0]}-${focusRange[1]}`
   return [
