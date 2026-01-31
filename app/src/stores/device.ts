@@ -22,6 +22,10 @@ interface DeviceStoreState {
   hasConnectionIssue: boolean
 }
 
+// Global mutable state: WebSocket connection and reconnection logic.
+// WARNING: This is module-level state that persists across store instances.
+// Shared state can complicate testing and leak across store instances.
+// Consider resetting these in tests or refactoring to use proper state management.
 let socket: WebSocket | null = null
 let connectPromise: Promise<void> | null = null
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null

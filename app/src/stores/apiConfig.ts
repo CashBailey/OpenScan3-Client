@@ -31,12 +31,18 @@ export const useApiConfigStore = defineStore('apiConfig', {
     loadFromStorage() {
       const saved = localStorage.getItem('apiConfig');
       if (saved) {
-        const parsed = JSON.parse(saved);
-        if ('useApiPath' in parsed && !('developerMode' in parsed)) {
-          parsed.developerMode = !parsed.useApiPath
-          delete parsed.useApiPath
+        try {
+          const parsed = JSON.parse(saved);
+          if ('useApiPath' in parsed && !('developerMode' in parsed)) {
+            parsed.developerMode = !parsed.useApiPath
+            delete parsed.useApiPath
+          }
+          Object.assign(this.$state, parsed);
+        } catch (error) {
+          console.warn('Failed to parse apiConfig from localStorage, using defaults:', error);
+          // Clear corrupted data to prevent repeated errors
+          localStorage.removeItem('apiConfig');
         }
-        Object.assign(this.$state, parsed);
       }
     }
   }

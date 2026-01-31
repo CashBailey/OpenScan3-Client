@@ -19,6 +19,10 @@ interface TaskStoreState {
   error: string | null
 }
 
+// Global mutable state: WebSocket connection, reconnection logic, and timers.
+// WARNING: This is module-level state that persists across store instances.
+// Shared module-level timers and sockets can leak across store instances and complicate testing.
+// Ensure proper cleanup in tests and consider resetting these for test isolation.
 let socket: WebSocket | null = null
 let connectPromise: Promise<void> | null = null
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null
